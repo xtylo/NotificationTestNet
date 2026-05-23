@@ -63,7 +63,7 @@ namespace Unit.Services
 
 
         [Fact]
-        public async Task CreateAsync_Should_Fail()
+        public async Task CreateAsync_Should_Fail_InvalidCategory()
         {
             // Arrange
             var mocks = Setup();
@@ -93,6 +93,37 @@ namespace Unit.Services
                 Times.Never);
         }
 
-       
+
+        [Fact]
+        public async Task CreateAsync_Should_Fail_EmptyBody()
+        {
+            // Arrange
+            var mocks = Setup();
+
+            var request = new CreateMessageDto
+            {
+                CategoryId = 1,
+                Body = String.Empty
+            };
+
+            // Act
+            var action = async () => await mocks.Service.CreateAsync(request);
+
+            // Assert
+            await action.Should()
+                .ThrowAsync<ArgumentException>();
+
+
+            mocks.Repository.Verify(
+                x => x.CreateAsync(
+                    It.IsAny<Message>()),
+                Times.Never);
+
+            mocks.Dispatcher.Verify(
+                x => x.DispatchAsync(
+                    It.IsAny<Message>()),
+                Times.Never);
+        }
+
     }
 }

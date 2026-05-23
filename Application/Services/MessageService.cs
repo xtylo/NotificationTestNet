@@ -29,6 +29,9 @@ namespace Application.Services
             if(!await _categoryRepository.ExistsAsync(createMessage.CategoryId))
                 throw new ArgumentException("Invalid category ID.");
 
+            if(string.IsNullOrEmpty(createMessage.Body))
+                throw new ArgumentException("Message body cannot be empty.");
+
             var message = new Message
             {
                 Body = createMessage.Body,
