@@ -1,9 +1,11 @@
 ﻿using Application.Abstractions;
+using Application.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
 {
     [Route("api/v1/[controller]")]
+    [ApiController]
     public class NotificationLogsController : Controller
     {
         private readonly INotificationLogService _service;
@@ -12,11 +14,10 @@ namespace Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<List<NotificationLogDto>> GetAll()
         {
-            var logs = await _service.GetAllAsync();
+            return await _service.GetAllAsync();
 
-            return Ok(logs);
         }
     }
 }

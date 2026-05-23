@@ -1,8 +1,9 @@
+using Application;
+using Infrastructure;
 using Infrastructure.Persistance;
 using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
 using DbSeeder = Infrastructure.Persistance.Seeders.DbSeeder;
-using Infrastructure;
-using Application;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference(); //localhost/scalar for ui
 }
 
 app.UseHttpsRedirection();

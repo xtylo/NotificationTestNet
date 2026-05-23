@@ -1,9 +1,11 @@
 ﻿using Application.Abstractions;
+using Application.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
 {
     [Route("api/v1/[controller]")]
+    [ApiController]
     public class CategoriesController : Controller
     {
         private readonly ICategoryService _service;
@@ -14,11 +16,10 @@ namespace Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<List<CategoryDto>> GetAll()
         {
-            var categories = await _service.GetAllAsync();
+            return await _service.GetAllAsync();
 
-            return Ok(categories);
         }
     }
 }

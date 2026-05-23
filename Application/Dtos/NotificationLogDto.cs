@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Application.Dtos
 {
-    public class NotificationLogDto
+    public record NotificationLogDto
     {
         public int Id { get; set; }
         public string Message { get; set; }

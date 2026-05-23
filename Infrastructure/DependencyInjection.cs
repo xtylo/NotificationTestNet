@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces;
+using Infrastructure.NotificationChannels;
 using Infrastructure.Persistance;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -32,8 +33,25 @@ namespace Infrastructure
                 CategoryRepository>();
 
             services.AddScoped<
+                IMessageRepository,
+                MessageRepository>();
+
+            services.AddScoped<
                 INotificationLogRepository,
                 NotificationLogRepository>();
+
+            //Channels
+            services.AddScoped<
+                INotificationChannel,
+                EmailNotificationChannel>();
+
+            services.AddScoped<
+                INotificationChannel,
+                SMSNotificationChannel>();
+
+            services.AddScoped<
+                INotificationChannel,
+                PushNotificationChannel>();
 
             return services;
         }

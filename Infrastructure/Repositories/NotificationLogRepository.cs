@@ -32,7 +32,7 @@ namespace Infrastructure.Repositories
                 .Include(x => x.Message)
                     .ThenInclude(m => m.Category)
                 .Include(x => x.Channel)
-                .OrderByDescending(x => x.CreatedAt)
+                .OrderBy(x => x.CreatedAt)
                 .ToListAsync();
         }
 

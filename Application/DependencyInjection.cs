@@ -14,8 +14,7 @@ namespace Application
 
             services.AddScoped<INotificationLogService, NotificationLogService>();
 
-            //todo
-            //services.AddScoped<IMessageService, MessageService>();
+            services.AddScoped<IMessageService, MessageService>();
 
             services.AddScoped<
                 NotificationDispatcherService>();
