@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Domain.Entities;
+using Infrastructure.Persistance.Seeders;
 
 namespace Infrastructure.Persistance
 {
@@ -42,6 +43,8 @@ namespace Infrastructure.Persistance
             modelBuilder.Entity<NotificationLog>()
                 .Property(n => n.ErrorMessage)
                 .HasMaxLength(1000);
+
+
         }
     }
 

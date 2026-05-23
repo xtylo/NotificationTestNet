@@ -1,15 +1,41 @@
-﻿using System;
+﻿using Application.Interfaces;
+using Infrastructure.Persistance;
+using Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Infrastructure
 {
-    internal class DependencyInjection
-    {/*
-        services.AddScoped<IUserRepository, UserRepository>();
+    public static class DependencyInjection
+    {
 
-services.AddScoped<
-    INotificationLogRepository,
-    NotificationLogRepository>();*/
+        public static IServiceCollection AddInfrastructure(
+            this IServiceCollection services,
+            IConfiguration configuration)
+        {
+            services.AddDbContext<AppDbContext>(options =>
+                options.UseSqlite(
+                    configuration.GetConnectionString(
+                        "DefaultConnection")));
+
+            // Repositories
+            services.AddScoped<
+                IUserRepository,
+                UserRepository>();
+
+            services.AddScoped<
+                ICategoryRepository,
+                CategoryRepository>();
+
+            services.AddScoped<
+                INotificationLogRepository,
+                NotificationLogRepository>();
+
+            return services;
+        }
     }
 }

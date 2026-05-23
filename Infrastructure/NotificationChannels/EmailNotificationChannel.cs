@@ -13,9 +13,21 @@ namespace Infrastructure.NotificationChannels
     {
         public NotificationChannelType ChannelType => NotificationChannelType.Email;
 
-        public Task<NotificationResult> SendAsync(User user, Message message)
+        public async Task<NotificationResult> SendAsync(User user, Message message)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Console.WriteLine(
+                    $"Sending email to {user.Email}");
+
+                await Task.Delay(100);
+
+                return NotificationResult.Successful();
+            }
+            catch (Exception ex)
+            {
+                return NotificationResult.Failed(ex.Message);
+            }
         }
     }
 }
