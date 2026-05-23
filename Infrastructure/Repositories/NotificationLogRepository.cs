@@ -30,6 +30,7 @@ namespace Infrastructure.Repositories
             return await _context.NotificationLogs
                 .Include(x => x.User)
                 .Include(x => x.Message)
+                    .ThenInclude(m => m.Category)
                 .Include(x => x.Channel)
                 .OrderByDescending(x => x.CreatedAt)
                 .ToListAsync();

@@ -12,6 +12,8 @@ namespace Application
         {
             services.AddScoped<ICategoryService, CategoryService>();
 
+            services.AddScoped<INotificationLogService, NotificationLogService>();
+
             //todo
             //services.AddScoped<IMessageService, MessageService>();
 
