@@ -240,5 +240,46 @@ namespace Unit.Services
                         l.Status == NotificationLogStatus.Failed)),
                 Times.Once);
         }
+
+        [Fact]
+        public async Task DispatchAsync_Should_Skip_Unsupported_Channel()
+        {
+            // Arrange
+
+            var user = new User
+            {
+                Id = 1,
+                Channels = new List<Channel>
+                {
+                    new Channel
+                    {
+                        Id = (int)NotificationChannelType.Push
+                    }
+                }
+            };
+
+            var message = new Message
+            {
+                CategoryId = 1
+            };
+
+            _userRepositoryMock
+                .Setup(x => x.GetSubscribedUsersAsync(1))
+                .ReturnsAsync(new List<User> { user });
+
+            var service = new NotificationDispatcherService(
+                _userRepositoryMock.Object,
+                _logRepositoryMock.Object,
+                new List<INotificationChannel>());
+
+            // Act
+            await service.DispatchAsync(message);
+
+            // Assert
+            _logRepositoryMock.Verify(
+                x => x.CreateAsync(
+                    It.IsAny<NotificationLog>()),
+                Times.Never);
+        }
     }
 }

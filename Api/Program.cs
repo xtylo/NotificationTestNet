@@ -14,7 +14,8 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(
     builder.Configuration);
 
-builder.Services.AddControllers();
+builder.Services.AddControllersWithViews();
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
@@ -32,7 +33,13 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
+app.UseStaticFiles();
+
 app.MapControllers();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 
 // Seed the database
