@@ -1,0 +1,63 @@
+﻿using Application.Interfaces;
+using Domain.Entities;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Application.Services
+{
+    public class NotificationDispatcherService
+    {
+        private readonly IUserRepository _userRepository;
+        private readonly INotificationLogRepository _logRepository;
+        private readonly IEnumerable<INotificationChannel> _channels;
+
+        public NotificationDispatcherService(
+            IUserRepository userRepository,
+            INotificationLogRepository logRepository,
+            IEnumerable<INotificationChannel> channels)
+        {
+            _userRepository = userRepository;
+            _logRepository = logRepository;
+            _channels = channels;
+        }
+
+        public async Task DispatchAsync(Message message)
+        {
+            var users = await _userRepository
+                .GetSubscribedUsersAsync(message.CategoryId);
+
+            foreach (var user in users)
+            {
+                foreach (var userChannel in user.Channels)
+                {
+                    var channel = _channels.FirstOrDefault(x =>
+                        x.ChannelType == userChannel.ChannelType);
+
+                    if (channel == null)
+                        continue;
+
+                    try
+                    {
+                        var result = await channel.SendAsync(user, message);
+
+                        await _logRepository.CreateAsync(
+                            NotificationLog.Success(
+                                user,
+                                message,
+                                userChannel));
+                    }
+                    catch (Exception ex)
+                    {
+                        await _logRepository.CreateAsync(
+                            NotificationLog.Failure(
+                                user,
+                                message,
+                                userChannel,
+                                ex.Message));
+                    }
+                }
+            }
+        }
+    }
+}
