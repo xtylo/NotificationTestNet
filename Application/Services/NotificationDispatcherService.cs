@@ -1,4 +1,5 @@
-﻿using Application.Interfaces;
+﻿using Application.Abstractions;
+using Application.Interfaces;
 using Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -6,7 +7,7 @@ using System.Text;
 
 namespace Application.Services
 {
-    public class NotificationDispatcherService
+    public class NotificationDispatcherService : INotificationDispatcherService
     {
         private readonly IUserRepository _userRepository;
         private readonly INotificationLogRepository _logRepository;

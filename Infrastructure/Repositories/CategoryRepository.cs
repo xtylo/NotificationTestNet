@@ -18,5 +18,11 @@ namespace Infrastructure.Repositories
             return await _context.Categories
                 .ToListAsync();
         }
+
+        public async Task<bool> ExistsAsync(int categoryId)
+        {
+            return await _context.Categories
+                .AnyAsync(x => x.Id == categoryId);
+        }
     }
 }

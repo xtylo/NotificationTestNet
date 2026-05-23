@@ -11,17 +11,23 @@ namespace Application.Services
     public class MessageService : IMessageService
     {
         private readonly IMessageRepository _repository;
-        private readonly NotificationDispatcherService _dispatcher;
+        private readonly INotificationDispatcherService _dispatcher;
+        private readonly ICategoryRepository _categoryRepository;
 
         public MessageService(
             IMessageRepository repository,
-            NotificationDispatcherService dispatcher) { 
+            INotificationDispatcherService dispatcher,
+            ICategoryRepository categoryRepository) { 
             _repository = repository;
             _dispatcher = dispatcher;
+            _categoryRepository = categoryRepository;
         }
 
         public async Task<Message> CreateAsync(CreateMessageDto createMessage)
         {
+
+            if(!await _categoryRepository.ExistsAsync(createMessage.CategoryId))
+                throw new ArgumentException("Invalid category ID.");
 
             var message = new Message
             {

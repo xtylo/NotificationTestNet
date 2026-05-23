@@ -31,7 +31,8 @@ namespace Domain.Entities
                 User = user,
                 CorrelationId = message?.CorrelationId ?? Guid.Empty,
                 DeliveredAt = DateTime.UtcNow,
-                ErrorMessage = null
+                ErrorMessage = null,
+                Status = NotificationLogStatus.Delivered
             };
         }
 
@@ -47,7 +48,8 @@ namespace Domain.Entities
                 User = user,
                 CorrelationId = message?.CorrelationId ?? Guid.Empty,
                 DeliveredAt = null,
-                ErrorMessage = errorMessage
+                ErrorMessage = errorMessage,
+                Status = NotificationLogStatus.Failed
             };
         }
     }

@@ -16,8 +16,7 @@ namespace Application
 
             services.AddScoped<IMessageService, MessageService>();
 
-            services.AddScoped<
-                NotificationDispatcherService>();
+            services.AddScoped<INotificationDispatcherService, NotificationDispatcherService>();
 
             return services;
         }
