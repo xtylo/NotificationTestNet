@@ -102,11 +102,6 @@ dotnet build
 dotnet run --project Api
 ```
 
-# 6. API Endpoints
-
-Very useful.
-
-```md id="jlwmvx"
 # API Endpoints
 
 ## Categories
@@ -136,7 +131,7 @@ Example request:
 
 # UI
 
-The application includes a lightweight Razor UI that allows:
+The application includes a view at localhost:port/home/index (views/home/index.cshtml):
 - sending notifications
 - viewing notification history
 
