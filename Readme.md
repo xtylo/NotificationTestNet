@@ -23,14 +23,13 @@ The solution follows Clean Architecture principles:
   - Models (message sent result)
 
 - Infrastructure
-  - Persistance
+  - Persistence
 	- Migrations
 	- Seeders (for channels, users, categories)
 	- DbContext (database context)
   - Repositories (implementation of repositories for categories, messages, notificationlogs)
   - Notification channels (implementations of email, sms, push notification channels)
   
-
 - Api
   - Controllers (for categories, messages, notificationlogs)
   - Dependency injection
@@ -72,7 +71,7 @@ Business validation is handled at the service layer to avoid relying solely on c
 
 ## Requirements
 
-- .NET 10 SDK (10.0.204)
+- .NET 10 SDK (10.0.204) or later
 
 ### Install MacOS
 
@@ -92,29 +91,44 @@ https://dotnet.microsoft.com/download
 dotnet --version
 ```
 
+10.0.204 or superior should be displayed.
+
 ## Run
 
 ```bash
+git clone https://github.com/xtylo/NotificationTestNet
 dotnet restore
-
 dotnet build
-
+dotnet test
 dotnet run --project Api
 ```
+
+### Runned and tested
+
+- Windows 11 x64 bit
+- macOS Tahoe 26.4
 
 # API Endpoints
 
 ## Categories
 
-GET `/api/categories`
+GET `/api/v1/categories`
 
 Returns all available categories.
 
 ---
 
+## Notification Logs
+
+GET `/api/v1/notificationlogs`
+
+Returns all notification logs ordered by delivery time.
+
+---
+
 ## Messages
 
-POST `/api/messages`
+POST `/api/v1/messages`
 
 Creates and dispatches a notification message.
 
@@ -129,11 +143,22 @@ Example request:
 
 ---
 
+# OpenAPI
+
+Once running, go to Scalar UI: `https://localhost:{port}/scalar`
+
+![Main UI](docs/scalar.png)
+
+
 # UI
 
 The application includes a view at localhost:port/home/index (views/home/index.cshtml):
 - sending notifications
 - viewing notification history
+
+The UI was intentionally kept lightweight using Razor Views to prioritize backend architecture and simplicity for the challenge.
+
+![Main UI](docs/main-ui.png)
 
 # Tests
 
@@ -143,6 +168,42 @@ Run tests with:
 dotnet test
 ```
 ---
+
+# Quick Evaluation Flow
+
+1. Run the application
+2. Open Swagger/Scalar UI
+3. Open the Razor UI
+4. Send a notification
+5. Verify notification logs are created
+6. Run unit tests
+
+# Solution Structure
+
+NotificationTestNet/
+│
+├── Api
+│   ├── Controllers
+│   ├── Views
+
+│   └── Program.cs
+│
+├── Application
+│   ├── DTOs
+│   ├── Services
+│   ├── Interfaces
+│   └── Models
+│
+├── Domain
+│   ├── Entities
+│   └── Enums
+│
+├── Infrastructure
+│   ├── Persistence
+│   ├── Repositories
+│   └── NotificationChannels
+│
+└── Unit Tests
 
 # Future Improvements
 
@@ -162,8 +223,10 @@ Possible future enhancements:
 
 # Database and migrations
 
+The application automatically creates and seeds the SQLite database on startup.
+
 ## EF Tools
-Install EF Tools
+Install EF Tools (required for migrations and database updates):
 ```
 dotnet tool install --global dotnet-ef
 ```

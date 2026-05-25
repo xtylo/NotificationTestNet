@@ -2,6 +2,10 @@
   <Folder Name="/Solution Items/">
     <File Path="Readme.md" />
   </Folder>
+  <Folder Name="/Solution Items/Docs/">
+    <File Path="Docs/main-ui.png" />
+    <File Path="Docs/scalar.png" />
+  </Folder>
   <Folder Name="/Tests/">
     <Project Path="Unit/Unit.csproj" Id="abeaa330-c3f9-42b7-a494-ffc9995ccca2" />
   </Folder>
