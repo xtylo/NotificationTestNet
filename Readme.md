@@ -147,7 +147,7 @@ Example request:
 
 Once running, go to Scalar UI: `https://localhost:{port}/scalar`
 
-![Main UI](docs/scalar.png)
+![Main UI](Docs/scalar.png)
 
 
 # UI
@@ -158,7 +158,7 @@ The application includes a view at localhost:port/home/index (views/home/index.c
 
 The UI was intentionally kept lightweight using Razor Views to prioritize backend architecture and simplicity for the challenge.
 
-![Main UI](docs/main-ui.png)
+![Main UI](Docs/main-ui.png)
 
 # Tests
 
@@ -177,33 +177,6 @@ dotnet test
 4. Send a notification
 5. Verify notification logs are created
 6. Run unit tests
-
-# Solution Structure
-
-NotificationTestNet/
-│
-├── Api
-│   ├── Controllers
-│   ├── Views
-
-│   └── Program.cs
-│
-├── Application
-│   ├── DTOs
-│   ├── Services
-│   ├── Interfaces
-│   └── Models
-│
-├── Domain
-│   ├── Entities
-│   └── Enums
-│
-├── Infrastructure
-│   ├── Persistence
-│   ├── Repositories
-│   └── NotificationChannels
-│
-└── Unit Tests
 
 # Future Improvements
 
