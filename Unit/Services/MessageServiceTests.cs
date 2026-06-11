@@ -13,29 +13,26 @@ namespace Unit.Services
 
         private (
             Mock<IMessageRepository> Repository, 
-            Mock<INotificationDispatcherService> Dispatcher, 
+            Mock<INotificationQueue> Queue, 
             MessageService Service
             ) Setup()
         {
-            var messageRepositoryMock =
-                new Mock<IMessageRepository>();
+            var messageRepositoryMock = new Mock<IMessageRepository>();
 
-            var dispatcherMock =
-                new Mock<INotificationDispatcherService>();
-
-            var categoryRepositoryMock =
-                new Mock<ICategoryRepository>();
+            var categoryRepositoryMock = new Mock<ICategoryRepository>();
 
             categoryRepositoryMock
                 .Setup(x => x.ExistsAsync(1))
                 .ReturnsAsync(true);
 
+            var notificationQueueMock = new Mock<INotificationQueue>();
+
             var service = new MessageService(
                 messageRepositoryMock.Object,
-                dispatcherMock.Object,
-                categoryRepositoryMock.Object);
+                categoryRepositoryMock.Object,
+                notificationQueueMock.Object);
 
-            return(messageRepositoryMock, dispatcherMock, service);
+            return(messageRepositoryMock, notificationQueueMock, service);
         }
       
 
@@ -58,6 +55,11 @@ namespace Unit.Services
             mocks.Repository.Verify(
                 x => x.CreateAsync(
                     It.IsAny<Message>()),
+                Times.Once);
+
+            mocks.Queue.Verify(
+                x => x.EnqueueAsync(
+                    It.IsAny<NotificationJob>()),
                 Times.Once);
         }
 
@@ -87,9 +89,9 @@ namespace Unit.Services
                     It.IsAny<Message>()),
                 Times.Never);
 
-            mocks.Dispatcher.Verify(
-                x => x.DispatchAsync(
-                    It.IsAny<Message>()),
+            mocks.Queue.Verify(
+                x => x.EnqueueAsync(
+                    It.IsAny<NotificationJob>()),
                 Times.Never);
         }
 
@@ -119,9 +121,9 @@ namespace Unit.Services
                     It.IsAny<Message>()),
                 Times.Never);
 
-            mocks.Dispatcher.Verify(
-                x => x.DispatchAsync(
-                    It.IsAny<Message>()),
+            mocks.Queue.Verify(
+                x => x.EnqueueAsync(
+                    It.IsAny<NotificationJob>()),
                 Times.Never);
         }
 

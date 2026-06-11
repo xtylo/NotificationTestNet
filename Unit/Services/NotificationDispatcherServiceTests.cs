@@ -87,6 +87,74 @@ namespace Unit.Services
         }
 
         [Fact]
+        public async Task DispatchAsync_Should_Send_Notifications_One_Channel_ThirdAttempt()
+        {
+            // Arrange
+            var user = new User
+            {
+                Id = 1,
+                Name = "Eduardo",
+                Email = "eduardo@test.com",
+
+                Channels = new List<Channel>
+            {
+                new Channel
+                {
+                    Id = (int)NotificationChannelType.Email,
+                    Name = "Email",
+                    ChannelType = NotificationChannelType.Email
+                }
+            }
+            };
+
+            var message = new Message
+            {
+                Id = 1,
+                Body = "Test notification",
+                CategoryId = 1,
+                CorrelationId = Guid.NewGuid()
+            };
+
+            _userRepositoryMock
+                .Setup(x => x.GetSubscribedUsersAsync(
+                    message.CategoryId))
+                .ReturnsAsync(new List<User> { user });
+
+            _channelMock
+                .Setup(x => x.ChannelType)
+                .Returns(NotificationChannelType.Email);
+
+            _channelMock
+                .SetupSequence(x => x.SendAsync(user, message))
+                .ThrowsAsync(new Exception("Temporary failure"))
+                .ThrowsAsync(new Exception("Temporary failure"))
+                .ReturnsAsync(NotificationResult.Successful());
+
+            var service = new NotificationDispatcherService(
+                _userRepositoryMock.Object,
+                _logRepositoryMock.Object,
+                new List<INotificationChannel>
+                {
+                _channelMock.Object
+                });
+
+            // Act
+            await service.DispatchAsync(message);
+
+            // Assert
+            _channelMock.Verify(
+                x => x.SendAsync(user, message),
+                Times.Exactly(3));
+
+            _logRepositoryMock.Verify(
+                x => x.CreateAsync(
+                    It.Is<NotificationLog>(l =>
+                        l.Status == NotificationLogStatus.Delivered &&
+                        l.RetryCount == 2)),
+                Times.Once);
+        }
+
+        [Fact]
         public async Task DispatchAsync_Should_Send_Notifications_Three_Channel()
         {
             // Arrange
@@ -219,7 +287,9 @@ namespace Unit.Services
                 .Returns(NotificationChannelType.Email);
 
             _channelMock
-                .Setup(x => x.SendAsync(user, message))
+                .SetupSequence(x => x.SendAsync(user, message))
+                .ThrowsAsync(new Exception("SMTP failed"))
+                .ThrowsAsync(new Exception("SMTP failed"))
                 .ThrowsAsync(new Exception("SMTP failed"));
 
             var service = new NotificationDispatcherService(
@@ -234,11 +304,17 @@ namespace Unit.Services
             await service.DispatchAsync(message);
 
             // Assert
+            _channelMock.Verify(
+                x => x.SendAsync(user, message),
+                Times.Exactly(3));
+
             _logRepositoryMock.Verify(
                 x => x.CreateAsync(
                     It.Is<NotificationLog>(l =>
-                        l.Status == NotificationLogStatus.Failed)),
+                        l.Status == NotificationLogStatus.Failed &&
+                        l.RetryCount == 3)),
                 Times.Once);
+
         }
 
         [Fact]
