@@ -8,6 +8,14 @@ The application allows:
 - Supporting multiple notification channels (Email, SMS, Push)
 - Tracking notification history and failures
 
+# Changes Since Initial Submission
+
+Based on reviewer feedback, the following were addressed:
+
+- **Async notification processing**: messages are now enqueued and dispatched asynchronously via `INotificationQueue` + `NotificationWorker` (BackgroundService), decoupling the API request from notification delivery.
+- **Fault tolerance**: each channel send retries up to 3 times with backoff; failures are logged per-channel without affecting other channels/users; the worker survives a failed job and continues processing the queue.
+- **Unit test coverage**: expanded to cover the queue, worker, job processor, dispatcher (including retry, multi-channel, and unsupported-channel scenarios), and message validation edge cases (whitespace body, nonexistent category).
+
 # Architecture
 
 The solution follows Clean Architecture principles:
@@ -17,9 +25,9 @@ The solution follows Clean Architecture principles:
   - Enums (channeltype, notificationlogstatus)
 
 - Application
-  - Services (Implementation of services for categories, messages, notificationlogs, dispatcher, notificationqueue)
+  - Services (Implementation of services for categories, messages, notificationlogs, dispatcher)
   - DTOs (category, message, notificationlog)
-  - Abstractions (Interface services for categories, messages, notificationlogs, dispatcher)
+  - Abstractions (Interface services for categories, messages, notificationlogs, dispatcher, inotificationqueue, job processor)
   - Models (message sent result)
 
 - Infrastructure
@@ -28,8 +36,10 @@ The solution follows Clean Architecture principles:
 	- Seeders (for channels, users, categories)
 	- DbContext (database context)
   - Repositories (implementation of repositories for categories, messages, notificationlogs)
-  - Notification hannels (implementations of email, sms, push notification channels)
-  - Queue (in-memory notification queue for handling notification jobs and hosted worker)
+  - Notification channels (implementations of email, sms, push notification channels)
+  - Queue (in-memory notification queue and hosted worker for async dispatch)
+    - NotificationJobProcessor: processes a single job (fetch message, dispatch notifications)
+    - NotificationWorker: drains the queue and ensures one job's failure doesn't stop subsequent jobs from being processed
   
 - Api
   - Controllers (for categories, messages, notificationlogs)
@@ -53,6 +63,15 @@ This allows:
 - Adding new channels without modifying dispatcher logic
 - Open/Closed Principle compliance
 - Better testability
+
+## Retry & Fault Tolerance
+
+Each notification send is retried up to 3 times with linear backoff (1s, 2s) before being marked as failed. 
+Failures are isolated per channel — one user's failed SMS delivery does not affect their Email or Push notifications, nor other users' notifications.
+
+Every delivery attempt (success, failure, or unsupported channel) is recorded in the notification log with its retry count, supporting the audit/traceability requirements.
+
+Cons: retry delays currently block the single background worker from processing the next queued job. In production this could be addressed with a dedicated retry queue, multiple worker instances, or a library like Polly with non-blocking retry policies.
 
 ## Repository Pattern
 
@@ -191,7 +210,6 @@ dotnet test
 
 Possible future enhancements:
 
-- Retry policies with Polly
 - Outbox pattern
 - Distributed tracing
 - Authentication/authorization
