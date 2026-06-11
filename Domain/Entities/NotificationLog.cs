@@ -19,7 +19,7 @@ namespace Domain.Entities
         public virtual Channel Channel { get; set; }
         public virtual User User { get; set; }
 
-        public static NotificationLog Success(User user, Message message, Channel userChannel)
+        public static NotificationLog Success(User user, Message message, Channel userChannel, int retryCount)
         {
             return new NotificationLog
             {
@@ -29,24 +29,23 @@ namespace Domain.Entities
                 CorrelationId = message?.CorrelationId ?? Guid.Empty,
                 DeliveredAt = DateTime.UtcNow,
                 ErrorMessage = null,
-                Status = NotificationLogStatus.Delivered
+                Status = NotificationLogStatus.Delivered,
+                RetryCount = retryCount
             };
         }
 
-        public static NotificationLog Failure(User user, Message message, Channel userChannel, string errorMessage)
+        public static NotificationLog Failure(User user, Message message, Channel userChannel, string errorMessage, int retryCount)
         {
             return new NotificationLog
             {
                 UserId = user?.Id ?? 0,
                 MessageId = message?.Id ?? 0,
                 ChannelId = userChannel?.Id ?? 0,
-                Message = message,
-                Channel = userChannel,
-                User = user,
                 CorrelationId = message?.CorrelationId ?? Guid.Empty,
                 DeliveredAt = null,
                 ErrorMessage = errorMessage,
-                Status = NotificationLogStatus.Failed
+                Status = NotificationLogStatus.Failed,
+                RetryCount = retryCount
             };
         }
     }

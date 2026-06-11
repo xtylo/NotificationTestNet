@@ -43,7 +43,7 @@ namespace Application.Services
             await _repository.CreateAsync(message);
 
             //dispatchs the message to the notification dispatcher service via queue
-            await _notificationQueue.EnqueueAsync(message);
+            await _notificationQueue.EnqueueAsync(new NotificationJob(message.Id, message.CorrelationId));
 
             //dispatchs the message to the notification dispatcher service directly, no queue
             //await _dispatcher.DispatchAsync(message);

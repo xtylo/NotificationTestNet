@@ -50,11 +50,12 @@ namespace Application.Services
                                     NotificationLog.Success(
                                         user,
                                         message,
-                                        userChannel));
+                                        userChannel,
+                                        attempt - 1));
 
                                 break;
                             }
-                            catch
+                            catch(Exception ex)
                             {
                                 if (attempt == 3)
                                     throw;
@@ -71,7 +72,8 @@ namespace Application.Services
                                 user,
                                 message,
                                 userChannel,
-                                ex.Message));
+                                ex.Message, 
+                                3));
                     }
                 }
             }

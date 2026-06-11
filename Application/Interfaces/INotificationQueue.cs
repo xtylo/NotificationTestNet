@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Application.Dtos;
+using Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,9 +8,9 @@ namespace Application.Interfaces
 {
     public interface INotificationQueue
     {
-        ValueTask EnqueueAsync(Message message);
+        ValueTask EnqueueAsync(NotificationJob job);
 
-        ValueTask<Message> DequeueAsync(
+        ValueTask<NotificationJob> DequeueAsync(
             CancellationToken cancellationToken);
     }
 }

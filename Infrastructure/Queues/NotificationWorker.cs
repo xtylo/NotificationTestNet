@@ -1,5 +1,6 @@
 ﻿using Application.Abstractions;
 using Application.Interfaces;
+using Infrastructure.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
@@ -26,15 +27,17 @@ namespace Infrastructure.Queues
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                var message =
+                var job =
                     await _queue.DequeueAsync(stoppingToken);
 
                 using var scope =
                     _serviceProvider.CreateScope();
 
-                var dispatcher =
-                    scope.ServiceProvider.GetRequiredService<
-                        INotificationDispatcherService>();
+                var dispatcher = scope.ServiceProvider.GetRequiredService<INotificationDispatcherService>();
+
+                var messageRepository = scope.ServiceProvider.GetRequiredService<IMessageRepository>();
+
+                var message = await messageRepository.GetByIdAsync(job.MessageId);
 
                 await dispatcher.DispatchAsync(message);
             }
