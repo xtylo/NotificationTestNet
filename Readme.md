@@ -17,7 +17,7 @@ The solution follows Clean Architecture principles:
   - Enums (channeltype, notificationlogstatus)
 
 - Application
-  - Services (Implementation of services for categories, messages, notificationlogs, dispatcher)
+  - Services (Implementation of services for categories, messages, notificationlogs, dispatcher, notificationqueue)
   - DTOs (category, message, notificationlog)
   - Abstractions (Interface services for categories, messages, notificationlogs, dispatcher)
   - Models (message sent result)
@@ -28,13 +28,22 @@ The solution follows Clean Architecture principles:
 	- Seeders (for channels, users, categories)
 	- DbContext (database context)
   - Repositories (implementation of repositories for categories, messages, notificationlogs)
-  - Notification channels (implementations of email, sms, push notification channels)
+  - Notification hannels (implementations of email, sms, push notification channels)
+  - Queue (in-memory notification queue for handling notification jobs and hosted worker)
   
 - Api
   - Controllers (for categories, messages, notificationlogs)
   - Dependency injection
 
 # Design Decisions
+
+## Notification Queue and Background Worker
+
+An in-memory notification queue was implemented to decouple message creation from dispatching. `INotificationQueue` recieves the message, add to the queue and a background worker processes the queue, dispatching notifications asynchronously. This allows for better scalability and responsiveness.
+
+Cons: if the app crashes or restarts, pending notifications in the queue will be lost. For production, a persistent queue (e.g., RabbitMQ, Azure Service Bus) would be recommended.
+
+Worker is implemented using `BackgroundService` and runs in the same process as the API for simplicity. In a real-world scenario, it could be hosted as an Azure Function, AWS Lambda, or a separate worker service.
 
 ## Strategy Pattern
 
@@ -182,7 +191,6 @@ dotnet test
 
 Possible future enhancements:
 
-- Background queue processing
 - Retry policies with Polly
 - Outbox pattern
 - Distributed tracing

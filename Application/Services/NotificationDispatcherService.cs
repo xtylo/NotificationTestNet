@@ -9,6 +9,9 @@ namespace Application.Services
 {
     public class NotificationDispatcherService : INotificationDispatcherService
     {
+
+        private const int MAX_ATTEMPTS = 3;
+
         private readonly IUserRepository _userRepository;
         private readonly INotificationLogRepository _logRepository;
         private readonly IEnumerable<INotificationChannel> _channels;
@@ -36,7 +39,16 @@ namespace Application.Services
                         x.ChannelType == userChannel.ChannelType);
 
                     if (channel == null)
+                    {
+                        await _logRepository.CreateAsync(
+                            NotificationLog.Failure(
+                                user,
+                                message,
+                                userChannel,
+                                $"Channel {userChannel.ChannelType} implementation not found",
+                                1));
                         continue;
+                    }
 
                     try
                     {
@@ -57,7 +69,7 @@ namespace Application.Services
                             }
                             catch(Exception ex)
                             {
-                                if (attempt == 3)
+                                if (attempt == MAX_ATTEMPTS)
                                     throw;
 
                                 await Task.Delay(
@@ -73,7 +85,7 @@ namespace Application.Services
                                 message,
                                 userChannel,
                                 ex.Message, 
-                                3));
+                                MAX_ATTEMPTS));
                     }
                 }
             }

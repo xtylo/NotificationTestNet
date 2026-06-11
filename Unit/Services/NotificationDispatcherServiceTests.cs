@@ -352,10 +352,16 @@ namespace Unit.Services
             await service.DispatchAsync(message);
 
             // Assert
+            _channelMock.Verify(
+                x => x.SendAsync(user, message),
+                Times.Never);
+
             _logRepositoryMock.Verify(
                 x => x.CreateAsync(
-                    It.IsAny<NotificationLog>()),
-                Times.Never);
+                    It.Is<NotificationLog>(l =>
+                        l.Status == NotificationLogStatus.Failed &&
+                        l.RetryCount == 1)),
+                Times.Once);
         }
     }
 }
