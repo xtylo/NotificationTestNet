@@ -40,13 +40,29 @@ namespace Application.Services
 
                     try
                     {
-                        var result = await channel.SendAsync(user, message);
+                        for (var attempt = 1; attempt <= 3; attempt++)
+                        {
+                            try
+                            {
+                                await channel.SendAsync(user, message);
 
-                        await _logRepository.CreateAsync(
-                            NotificationLog.Success(
-                                user,
-                                message,
-                                userChannel));
+                                await _logRepository.CreateAsync(
+                                    NotificationLog.Success(
+                                        user,
+                                        message,
+                                        userChannel));
+
+                                break;
+                            }
+                            catch
+                            {
+                                if (attempt == 3)
+                                    throw;
+
+                                await Task.Delay(
+                                    TimeSpan.FromSeconds(attempt));
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {

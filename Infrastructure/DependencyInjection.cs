@@ -1,6 +1,7 @@
 ﻿using Application.Interfaces;
 using Infrastructure.NotificationChannels;
 using Infrastructure.Persistance;
+using Infrastructure.Queues;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -52,6 +53,14 @@ namespace Infrastructure
             services.AddScoped<
                 INotificationChannel,
                 PushNotificationChannel>();
+
+            //Queues
+            //One queue for all channels, if needed we can have separate queues for each channel type
+            services.AddSingleton<
+                INotificationQueue,
+                NotificationQueue>();
+
+            services.AddHostedService<NotificationWorker>();
 
             return services;
         }

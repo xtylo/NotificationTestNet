@@ -11,16 +11,16 @@ namespace Application.Services
     public class MessageService : IMessageService
     {
         private readonly IMessageRepository _repository;
-        private readonly INotificationDispatcherService _dispatcher;
         private readonly ICategoryRepository _categoryRepository;
+        private readonly INotificationQueue _notificationQueue;
 
         public MessageService(
             IMessageRepository repository,
-            INotificationDispatcherService dispatcher,
-            ICategoryRepository categoryRepository) { 
+            ICategoryRepository categoryRepository,
+            INotificationQueue notificationQueue) { 
             _repository = repository;
-            _dispatcher = dispatcher;
             _categoryRepository = categoryRepository;
+            _notificationQueue = notificationQueue;
         }
 
         public async Task<Message> CreateAsync(CreateMessageDto createMessage)
@@ -42,8 +42,12 @@ namespace Application.Services
 
             await _repository.CreateAsync(message);
 
-            await _dispatcher.DispatchAsync(message);
-            
+            //dispatchs the message to the notification dispatcher service via queue
+            await _notificationQueue.EnqueueAsync(message);
+
+            //dispatchs the message to the notification dispatcher service directly, no queue
+            //await _dispatcher.DispatchAsync(message);
+
             return message;
         }
     }
