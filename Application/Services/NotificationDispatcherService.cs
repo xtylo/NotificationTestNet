@@ -41,12 +41,11 @@ namespace Application.Services
                     if (channel == null)
                     {
                         await _logRepository.CreateAsync(
-                            NotificationLog.Failure(
+                            NotificationLog.ChannelNotConfigured(
                                 user,
                                 message,
                                 userChannel,
-                                $"Channel {userChannel.ChannelType} implementation not found",
-                                1));
+                                $"Channel {userChannel.ChannelType} implementation not found"));
                         continue;
                     }
 

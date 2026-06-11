@@ -359,8 +359,8 @@ namespace Unit.Services
             _logRepositoryMock.Verify(
                 x => x.CreateAsync(
                     It.Is<NotificationLog>(l =>
-                        l.Status == NotificationLogStatus.Failed &&
-                        l.RetryCount == 1)),
+                        l.Status == NotificationLogStatus.ChannelNotConfigured &&
+                        l.RetryCount == 0)),
                 Times.Once);
         }
     }

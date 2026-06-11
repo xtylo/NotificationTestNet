@@ -8,7 +8,7 @@ namespace Domain.Enums
     {
         Created = 0,
         Delivered = 1,
-        Failed = 2
-
+        Failed = 2,
+        ChannelNotConfigured = 3
     }
 }

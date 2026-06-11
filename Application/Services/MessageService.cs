@@ -29,7 +29,7 @@ namespace Application.Services
             if(!await _categoryRepository.ExistsAsync(createMessage.CategoryId))
                 throw new ArgumentException("Invalid category ID.");
 
-            if(string.IsNullOrEmpty(createMessage.Body))
+            if(string.IsNullOrWhiteSpace(createMessage.Body))
                 throw new ArgumentException("Message body cannot be empty.");
 
             var message = new Message
@@ -44,9 +44,6 @@ namespace Application.Services
 
             //dispatchs the message to the notification dispatcher service via queue
             await _notificationQueue.EnqueueAsync(new NotificationJob(message.Id, message.CorrelationId));
-
-            //dispatchs the message to the notification dispatcher service directly, no queue
-            //await _dispatcher.DispatchAsync(message);
 
             return message;
         }

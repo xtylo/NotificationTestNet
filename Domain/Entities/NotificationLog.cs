@@ -48,5 +48,20 @@ namespace Domain.Entities
                 RetryCount = retryCount
             };
         }
+
+        public static NotificationLog ChannelNotConfigured(User user, Message message, Channel userChannel, string errorMessage)
+        {
+            return new NotificationLog
+            {
+                UserId = user?.Id ?? 0,
+                MessageId = message?.Id ?? 0,
+                ChannelId = userChannel?.Id ?? 0,
+                CorrelationId = message?.CorrelationId ?? Guid.Empty,
+                DeliveredAt = null,
+                ErrorMessage = errorMessage,
+                Status = NotificationLogStatus.ChannelNotConfigured,
+                RetryCount = 0
+            };
+        }
     }
 }

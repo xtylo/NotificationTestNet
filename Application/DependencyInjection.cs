@@ -1,4 +1,5 @@
 ﻿using Application.Abstractions;
+using Application.Interfaces;
 using Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,6 +18,8 @@ namespace Application
             services.AddScoped<IMessageService, MessageService>();
 
             services.AddScoped<INotificationDispatcherService, NotificationDispatcherService>();
+
+            services.AddScoped<INotificationJobProcessor, NotificationJobProcessor>();
 
             return services;
         }
