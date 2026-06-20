@@ -12,15 +12,15 @@ namespace Application.Services
     {
         private readonly IMessageRepository _repository;
         private readonly ICategoryRepository _categoryRepository;
-        private readonly INotificationQueue _notificationQueue;
+        private readonly INotificationPublisher _notificationPublisher;
 
         public MessageService(
             IMessageRepository repository,
             ICategoryRepository categoryRepository,
-            INotificationQueue notificationQueue) { 
+            INotificationPublisher notificationPublisher) {
             _repository = repository;
             _categoryRepository = categoryRepository;
-            _notificationQueue = notificationQueue;
+            _notificationPublisher = notificationPublisher;
         }
 
         public async Task<Message> CreateAsync(CreateMessageDto createMessage)
@@ -42,8 +42,8 @@ namespace Application.Services
 
             await _repository.CreateAsync(message);
 
-            //dispatchs the message to the notification dispatcher service via queue
-            await _notificationQueue.EnqueueAsync(new NotificationJob(message.Id, message.CorrelationId));
+            //publishes the job to the configured transport (in-memory / RabbitMQ / ...)
+            await _notificationPublisher.PublishAsync(new NotificationJob(message.Id, message.CorrelationId));
 
             return message;
         }
