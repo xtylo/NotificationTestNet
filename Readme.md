@@ -15,6 +15,8 @@ Based on reviewer feedback, the following were addressed:
 - **Async notification processing**: messages are now enqueued and dispatched asynchronously via `INotificationQueue` + `NotificationWorker` (BackgroundService), decoupling the API request from notification delivery.
 - **Fault tolerance**: each channel send retries up to 3 times with backoff; failures are logged per-channel without affecting other channels/users; the worker survives a failed job and continues processing the queue.
 - **Unit test coverage**: expanded to cover the queue, worker, job processor, dispatcher (including retry, multi-channel, and unsupported-channel scenarios), and message validation edge cases (whitespace body, nonexistent category).
+- **Pluggable messaging transport**: messages are published through an `INotificationPublisher` abstraction whose implementation is selected at startup via `Messaging:Provider`. Ships with the in-memory queue (default) and a durable **RabbitMQ** transport (dead-letter queue included), with no changes required in the Application/Domain layers to switch.
+- **Docker support**: a `docker-compose.yml` starts RabbitMQ (with management UI) for local development.
 
 # Architecture
 
@@ -40,6 +42,9 @@ The solution follows Clean Architecture principles:
   - Queue (in-memory notification queue and hosted worker for async dispatch)
     - NotificationJobProcessor: processes a single job (fetch message, dispatch notifications)
     - NotificationWorker: drains the queue and ensures one job's failure doesn't stop subsequent jobs from being processed
+  - Messaging (pluggable transport behind `INotificationPublisher`)
+    - InMemory: publisher that delegates to the in-process queue above
+    - RabbitMq: durable publisher + consumer (`BackgroundService`), topology with a dead-letter exchange/queue, selected via `Messaging:Provider`
   
 - Api
   - Controllers (for categories, messages, notificationlogs)
@@ -51,9 +56,20 @@ The solution follows Clean Architecture principles:
 
 An in-memory notification queue was implemented to decouple message creation from dispatching. `INotificationQueue` recieves the message, add to the queue and a background worker processes the queue, dispatching notifications asynchronously. This allows for better scalability and responsiveness.
 
-Cons: if the app crashes or restarts, pending notifications in the queue will be lost. For production, a persistent queue (e.g., RabbitMQ, Azure Service Bus) would be recommended.
+Cons: if the app crashes or restarts, pending notifications in the queue will be lost. For production, a persistent broker is recommended — which is why the transport is now pluggable (see below).
 
 Worker is implemented using `BackgroundService` and runs in the same process as the API for simplicity. In a real-world scenario, it could be hosted as an Azure Function, AWS Lambda, or a separate worker service.
+
+## Pluggable Messaging Transport
+
+Message production goes through a single `INotificationPublisher` abstraction; the consumer side is a transport-specific hosted service. The implementation is chosen at startup from the `Messaging:Provider` setting, so the Application/Domain layers never depend on a broker.
+
+| `Messaging:Provider` | Publisher | Consumer | Notes |
+|----------------------|-----------|----------|-------|
+| `InMemory` (default) | delegates to `System.Threading.Channels` | `NotificationWorker` | Single process, non-durable. Good for tests. |
+| `RabbitMq`           | `RabbitMqNotificationPublisher` | `RabbitMqNotificationWorker` | Durable, survives restarts, scales horizontally. |
+
+`appsettings.json` defaults to `InMemory`; `appsettings.Development.json` sets `RabbitMq` so it pairs with the Docker setup below. RabbitMQ jobs are published as persistent JSON; failed jobs are dead-lettered to `notifications.dlq` for inspection rather than being lost or redelivered forever. See `Docs/Messaging.md` for details.
 
 ## Strategy Pattern
 
@@ -91,6 +107,8 @@ Business validation is handled at the service layer to avoid relying solely on c
 - ASP.NET Core - 10
 - Entity Framework Core
 - SQLite
+- RabbitMQ (`RabbitMQ.Client`) — optional durable messaging transport
+- Docker / Docker Compose — local RabbitMQ
 - xUnit
 - Moq
 - FluentAssertions
@@ -100,6 +118,7 @@ Business validation is handled at the service layer to avoid relying solely on c
 ## Requirements
 
 - .NET 10 SDK (10.0.204) or later
+- Docker (optional) — only needed to run with the RabbitMQ transport
 
 ### Install MacOS
 
@@ -129,6 +148,31 @@ dotnet restore
 dotnet build
 dotnet test
 dotnet run --project Api
+```
+
+By default (`Messaging:Provider = InMemory`) the app runs fully in-process and needs no broker. Running in the **Development** environment uses RabbitMQ, so start the broker first (see below).
+
+## Run with RabbitMQ (Docker)
+
+Start RabbitMQ and its management UI:
+
+```bash
+docker compose up -d
+```
+
+- AMQP endpoint: `localhost:5672`
+- Management UI: http://localhost:15672 (guest / guest)
+
+Then run the API. In Development it already targets RabbitMQ; otherwise set `Messaging:Provider` to `RabbitMq`:
+
+```bash
+dotnet run --project Api
+```
+
+Stop the broker when done (add `-v` to also drop the data volume):
+
+```bash
+docker compose down
 ```
 
 ### Runned and tested
@@ -214,8 +258,8 @@ Possible future enhancements:
 - Distributed tracing
 - Authentication/authorization
 - Pagination for notification logs
-- Docker support
 - Integration tests
+- Azure Service Bus transport (add a provider behind `INotificationPublisher`)
 
 
 # Other commands
