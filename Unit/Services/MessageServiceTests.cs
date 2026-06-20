@@ -12,8 +12,8 @@ namespace Unit.Services
     {
 
         private (
-            Mock<IMessageRepository> Repository, 
-            Mock<INotificationQueue> Queue, 
+            Mock<IMessageRepository> Repository,
+            Mock<INotificationPublisher> Publisher,
             MessageService Service
             ) Setup()
         {
@@ -25,14 +25,14 @@ namespace Unit.Services
                 .Setup(x => x.ExistsAsync(1))
                 .ReturnsAsync(true);
 
-            var notificationQueueMock = new Mock<INotificationQueue>();
+            var notificationPublisherMock = new Mock<INotificationPublisher>();
 
             var service = new MessageService(
                 messageRepositoryMock.Object,
                 categoryRepositoryMock.Object,
-                notificationQueueMock.Object);
+                notificationPublisherMock.Object);
 
-            return(messageRepositoryMock, notificationQueueMock, service);
+            return(messageRepositoryMock, notificationPublisherMock, service);
         }
       
 
@@ -57,9 +57,10 @@ namespace Unit.Services
                     It.IsAny<Message>()),
                 Times.Once);
 
-            mocks.Queue.Verify(
-                x => x.EnqueueAsync(
-                    It.IsAny<NotificationJob>()),
+            mocks.Publisher.Verify(
+                x => x.PublishAsync(
+                    It.IsAny<NotificationJob>(),
+                    It.IsAny<CancellationToken>()),
                 Times.Once);
         }
 
@@ -89,9 +90,10 @@ namespace Unit.Services
                     It.IsAny<Message>()),
                 Times.Never);
 
-            mocks.Queue.Verify(
-                x => x.EnqueueAsync(
-                    It.IsAny<NotificationJob>()),
+            mocks.Publisher.Verify(
+                x => x.PublishAsync(
+                    It.IsAny<NotificationJob>(),
+                    It.IsAny<CancellationToken>()),
                 Times.Never);
         }
 
@@ -121,9 +123,10 @@ namespace Unit.Services
                     It.IsAny<Message>()),
                 Times.Never);
 
-            mocks.Queue.Verify(
-                x => x.EnqueueAsync(
-                    It.IsAny<NotificationJob>()),
+            mocks.Publisher.Verify(
+                x => x.PublishAsync(
+                    It.IsAny<NotificationJob>(),
+                    It.IsAny<CancellationToken>()),
                 Times.Never);
         }
 
@@ -151,9 +154,10 @@ namespace Unit.Services
                     It.IsAny<Message>()),
                 Times.Never);
 
-            mocks.Queue.Verify(
-                x => x.EnqueueAsync(
-                    It.IsAny<NotificationJob>()),
+            mocks.Publisher.Verify(
+                x => x.PublishAsync(
+                    It.IsAny<NotificationJob>(),
+                    It.IsAny<CancellationToken>()),
                 Times.Never);
         }
 
@@ -181,9 +185,10 @@ namespace Unit.Services
                     It.IsAny<Message>()),
                 Times.Never);
 
-            mocks.Queue.Verify(
-                x => x.EnqueueAsync(
-                    It.IsAny<NotificationJob>()),
+            mocks.Publisher.Verify(
+                x => x.PublishAsync(
+                    It.IsAny<NotificationJob>(),
+                    It.IsAny<CancellationToken>()),
                 Times.Never);
         }
 

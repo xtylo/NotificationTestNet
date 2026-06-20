@@ -1,4 +1,6 @@
 ﻿using Application.Interfaces;
+using Infrastructure.Messaging.InMemory;
+using Infrastructure.Messaging.RabbitMq;
 using Infrastructure.NotificationChannels;
 using Infrastructure.Persistance;
 using Infrastructure.Queues;
@@ -54,15 +56,37 @@ namespace Infrastructure
                 INotificationChannel,
                 PushNotificationChannel>();
 
-            //Queues
-            //One queue for all channels, if needed we can have separate queues for each channel type
-            services.AddSingleton<
-                INotificationQueue,
-                NotificationQueue>();
-
-            services.AddHostedService<NotificationWorker>();
+            //Messaging transport — selected via "Messaging:Provider" (InMemory | RabbitMq).
+            //Same INotificationPublisher producer abstraction either way; only the
+            //implementation and the consumer hosted-service differ.
+            AddMessaging(services, configuration);
 
             return services;
+        }
+
+        private static void AddMessaging(
+            IServiceCollection services,
+            IConfiguration configuration)
+        {
+            var provider = configuration["Messaging:Provider"] ?? "InMemory";
+
+            if (provider.Equals("RabbitMq", StringComparison.OrdinalIgnoreCase))
+            {
+                services.Configure<RabbitMqOptions>(
+                    configuration.GetSection("Messaging:RabbitMq"));
+
+                services.AddSingleton<RabbitMqConnection>();
+                services.AddSingleton<INotificationPublisher, RabbitMqNotificationPublisher>();
+                services.AddHostedService<RabbitMqNotificationWorker>();
+            }
+            else
+            {
+                // In-process queue (System.Threading.Channels) drained by NotificationWorker.
+                // One queue for all channels; split per channel type later if needed.
+                services.AddSingleton<INotificationQueue, NotificationQueue>();
+                services.AddSingleton<INotificationPublisher, InMemoryNotificationPublisher>();
+                services.AddHostedService<NotificationWorker>();
+            }
         }
     }
 }
